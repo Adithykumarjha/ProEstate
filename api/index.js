@@ -20,3 +20,16 @@ app.listen(PORT,()=>{
 
 app.use('/api/user',UserRouter);
 app.use('/api/auth',authRouter);
+
+
+// error middleware
+app.use((err,req,resizeBy,next)=>{
+  const statusCode=err.statusCode|| 500;
+  const message=err.message || 'Internal Server Error';
+
+  return resizeBy.status(statusCode).json({
+    success:false,
+    statusCode,
+    message
+  });
+});
