@@ -78,7 +78,7 @@ function UpdateListing() {
       uploadTask.on(
         "state-changed",
         (snapshot)=>{
-          const progress = (snapshot.bytesTransferred/snapshot.totalbytes)*100;
+          const progress = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
           console.log(`Upload is ${progress}% done`);
         },
         (error)=>{
@@ -125,7 +125,7 @@ function UpdateListing() {
   };
 
 
-  const handleSubmit = (e)=>{
+  const handleSubmit = async (e)=>{
     e.preventDefault();
     try{
       if(formData.imageUrls.length<1) return setError('You must upload at least one image');

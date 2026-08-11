@@ -26,7 +26,7 @@ function CreateListing() {
     furnished:false,
   });
   const [uploading, setUploading] = useState(false);
-  const handleImageFiles = (e)=>{
+  const handleImageSubmit = (e)=>{
     if(files.length > 0 && files.length + formData.imageUrls.length < 7){
       setUploading(true);
       setImageUploadError(false);
@@ -62,7 +62,7 @@ function CreateListing() {
       uploadTask.on(
         "state-changed",
         (snapshot)=>{
-          const progress = (snapshot.bytesTransferred/snapshot.totalbytes)*100;
+          const progress = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
           console.log(`Upload is ${progress}% done`);
         },
         (error)=>{
@@ -107,7 +107,7 @@ function CreateListing() {
       });
     }
   };
-  const handleSubmit = (e)=>{
+  const handleSubmit = async (e)=>{
     e.preventDefault();
     try{
       if(formData.imageUrls.length<1) return setError('You must upload at least one image');
@@ -128,6 +128,7 @@ function CreateListing() {
       setLoading(false);
       if(data.success === false){
         setError(data.message);
+        return;
       }
       navigate(`/listing/${data._id}`);
 
@@ -136,7 +137,7 @@ function CreateListing() {
       setLoading(false);
 
     }
-  }
+  };
 
   return (
     <main className='p-3 max-w-4xl mx-auto'>
@@ -144,7 +145,7 @@ function CreateListing() {
 
       <form onSubmit={handleSubmit} className='flex flex-col sm:flex-row  gap-4' action="">
         <div className='flex flex-col gap-4 flex-1'>
-          <input type="text" placeholder='Name' className='border p-3 rounded-lg' id='name' maxLength='62' minLength='10' required onChange={handleChange} value={formData.fileName} />
+          <input type="text" placeholder='Name' className='border p-3 rounded-lg' id='name' maxLength='62' minLength='10' required onChange={handleChange} value={formData.name} />
 
           <input type="text" placeholder='Descriptiion' className='border p-3 rounded-lg' id='description' required  onChange={handleChange} value={formData.description}/>
 
@@ -202,7 +203,7 @@ function CreateListing() {
 
             {formData.offer && (
               <div className='flex items-center gap-2'>
-              <input type="number" id='discountedPrice' min='0' max='100000' required className='p-3 border border-gray-300 rounded-lg' onChange={handleChange} value={formData.discountPrice}/>
+              <input type="number" id='discountPrice' min='0' max='100000' required className='p-3 border border-gray-300 rounded-lg' onChange={handleChange} value={formData.discountPrice}/>
               <div className='flex flex-col items-center'>
                 <p>Discounted price</p>
                 <span className='text-xs'>($ / month)</span>
@@ -224,12 +225,12 @@ function CreateListing() {
         </div>
         <p className='text-red-700'>{imageUploadError && imageUploadError}</p>
         {
-          formData.imageUrls.length > 0 && formData.imageUrls.map((url, index) => {
+          formData.imageUrls.length > 0 && formData.imageUrls.map((url, index) => (    
             <div key={url} className='flex justify-between p-3 border items-center'>
               <img src={url} alt="listing image" className='w-20 h-20 object-contain rounded-lg' />
               <button type='button' onClick={()=>handleRemoveImage(index)} className='p-3 text-red-700  rounded-lg uppercase hover:opacity-75' >Delete</button>
             </div>
-          })
+          ))
         }
         <button disabled={loading || uploading} className='p-3 bg-slate-700 text-white rounded-lg uppercase  hover:opacity-95 disabled:opacity-80'>{loading ? 'Creating...': 'Create Listing'}</button>
         {error && <p className='text-red-700 text-sm'>{error}</p>}

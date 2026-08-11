@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
 
-function Contact(listing) {
+function Contact({listing}) {
   const [landlord, setLandlord] =useState(null);
   const [message, setMessage] = useState('');
 
@@ -10,6 +10,7 @@ function Contact(listing) {
   }
 
   useEffect(()=>{
+    const fetchLandlord = async ()=>{
     try {
       const res = await fetch(`/api/user/${listing.userRef}`);
       const data = await res.json();
@@ -17,7 +18,8 @@ function Contact(listing) {
     } catch (error) {
       console.log(error);
     }
-  },[listing.userRef])
+  };
+  },[listing.userRef]);
 
   return (
     <>
@@ -29,7 +31,7 @@ function Contact(listing) {
 
         </textarea>
 
-        <Link to={`mailto:${landlord.email} ? subject=Regarding ${listing.name} &body=${message}`} className='bg-slate-700 text-white text-center p-3 uppercase rounded-lg hover:opacity-95'>
+        <Link to={`mailto:${landlord.email}?subject=${encodeURIComponent( `Regarding ${listing.name}` )}&body=${encodeURIComponent(message)}`} className="bg-slate-700 text-white text-center p-3 uppercase rounded-lg hover:opacity-95">
         Send Message
         </Link>
       </div>
