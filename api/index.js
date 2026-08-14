@@ -6,6 +6,7 @@ import authRouter from './routes/authRoute.js';
 import listingRouter from './routes/listingRoute.js'
 import cookieParser from 'cookie-parser';
 import cloudinaryRoutes from './routes/cloudinary_route.js';
+import path from 'path';
 
 dotenv.config();
 mongoose.connect(process.env.MONGODB_CONNECT).then (()=>{
@@ -13,6 +14,8 @@ mongoose.connect(process.env.MONGODB_CONNECT).then (()=>{
 }).catch((err)=>{
   console.log(err);
 });
+
+const dirname = path.resolve();
 
 const app=express();
 app.use(express.json());
@@ -28,6 +31,12 @@ app.use('/api/user',UserRouter);
 app.use('/api/auth',authRouter);
 app.use('/api/listing',listingRouter);
 app.use('/api/cloudinary', cloudinaryRoutes);
+
+app.use(express.static(path.join(__dirname,'/client/dist')));
+
+app.get('*', (req,res) =>{
+  res.sendFile(path.join(__dirname, 'client','dist','index.html'));
+})
 
 
 // error middleware
