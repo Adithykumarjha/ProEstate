@@ -34,10 +34,6 @@ app.use('/api/cloudinary', cloudinaryRoutes);
 
 app.use(express.static(path.join(dirname,'/client/dist')));
 
-app.get('*', (req,res) =>{
-  res.sendFile(path.join(dirname, 'client','dist','index.html'));
-})
-
 app.get('/*splat', (req,res) =>{
   res.sendFile(path.join(dirname, 'client','dist','index.html'));
 })
