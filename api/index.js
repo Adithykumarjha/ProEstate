@@ -5,7 +5,7 @@ import UserRouter from './routes/UserRoute.js';
 import authRouter from './routes/authRoute.js';
 import listingRouter from './routes/listingRoute.js'
 import cookieParser from 'cookie-parser';
-import cloudinaryRoutes from './routes/cloudinary_route.js';
+import cloudinaryRoutes from './routes/cloudinaryRoute.js';
 import path from 'path';
 
 dotenv.config();
@@ -32,10 +32,14 @@ app.use('/api/auth',authRouter);
 app.use('/api/listing',listingRouter);
 app.use('/api/cloudinary', cloudinaryRoutes);
 
-app.use(express.static(path.join(__dirname,'/client/dist')));
+app.use(express.static(path.join(dirname,'/client/dist')));
 
 app.get('*', (req,res) =>{
-  res.sendFile(path.join(__dirname, 'client','dist','index.html'));
+  res.sendFile(path.join(dirname, 'client','dist','index.html'));
+})
+
+app.get('*', (req,res) =>{
+  res.sendFile(path.join(dirname, 'client','dist','index.html'));
 })
 
 
