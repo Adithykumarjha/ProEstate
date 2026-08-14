@@ -14,15 +14,13 @@ function Search() {
     furnished:false,
     offer:false,
     sort:'created_at',
-    order:desc,
+    order:'desc',
    });
-
-   console.log(listings);
 
    useEffect(()=>{
 
-    const urlParams = new URLSearchParams(location.search);
-    const searchTermFromUrl = urlParams.get('searchterm');
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchTermFromUrl = urlParams.get('searchTerm');
     const typeFromUrl= urlParams.get('type');
     const parkingFromUrl = urlParams.get('parking');
     const furnishedFromUrl = urlParams.get('furnished');
@@ -46,49 +44,52 @@ function Search() {
         furnished: furnishedFromUrl==='true'?true:false,
         offer: offerFromUrl==='true'?true:false,
         sort: sortFromurl || 'created_at',
-        order: orderFromUrl || 'ddesc',
+        order: orderFromUrl || 'desc',
       });
     }
 
     const fetchListings = async () => {
-      setLoading(true);
-      const searchQuery = urlParams.toString();
-      const res = await fetch(`/api/listing/get?${searchQuery}`);
-      const data = await res.json();
-      if(data.length>8){
-        setShowMore(true);
-      }else{
+      try {
+        setLoading(true);
         setShowMore(false);
+        const searchQuery = urlParams.toString();
+        const res = await fetch(`/api/listing/get?${searchQuery}`);
+        const data = await res.json();
+        if(data.length>8){
+          setShowMore(true);
+        }else{
+          setShowMore(false);
+        }
+        setListings(data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
       }
-      setListings(data);
-      setLoading(false);
     };
 
     fetchListings();
 
-   },[location.search]);
-
-
-   console.log(sidebardata);
+   },[window.location.search]);
 
    const handleChange=(e)=>{
     if(e.target.id==='all' || e.target.id==='rent' || e.target.id==='sale'){
       setSidebardata({...sidebardata, type: e.target.id})
     }
 
-    if(e.target.id==='searchterm'){
-      setSidebardata({...sidebardata, searchTerm:e.target.val})
+    if(e.target.id==='searchTerm'){
+      setSidebardata({...sidebardata, searchTerm:e.target.value})
     }
 
     if(e.target.id==='parking' || e.target.id==='furnished' || e.target.id==='offer'){
       setSidebardata({...sidebardata,
-      [e.target.id]:e.target.checked==='true'?true:false,
+      [e.target.id]:e.target.checked,
       });
     }
 
     if(e.target.id==='sort_order'){
       const sort = e.target.value.split('_')[0] || 'created_at';
-      const order= e.target.value.split('_'[1]) || 'desc';
+      const order = e.target.value.split('_')[1] || 'desc';
 
       setSidebardata({...sidebardata,sort,order});
     }
@@ -109,17 +110,21 @@ function Search() {
    };
 
    const onShowMoreClick = async ()=>{
-    const numberOfListings = listings.length;
-    const startIndex = numberOfListings;
-    const urlParams = new URLSearchParams(location.search);
-    urlParams.set('startIndex', startIndex);
-    const searchQuery = urlParams.toString();
-    const res = await fetch(`/api/listing/get?${searchQuery}`);
-    const data = await res.json();
-    if(data.length<9){
-      setShowMore(false);
+    try {
+      const numberOfListings = listings.length;
+      const startIndex = numberOfListings;
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.set('startIndex', startIndex);
+      const searchQuery = urlParams.toString();
+      const res = await fetch(`/api/listing/get?${searchQuery}`);
+      const data = await res.json();
+      if(data.length<9){
+        setShowMore(false);
+      }
+      setListings([...listings, ...data]);
+    } catch (error) {
+      console.log(error);
     }
-    setListings([...listings, ...data]);
    };
 
   return (
@@ -129,10 +134,10 @@ function Search() {
           <div className='flex items-center gap-2'>
             <label className='whitespace-nowrap font-semibold'>Search Term:</label>
             <input type="text" 
-            id='searchterm'
+            id='searchTerm'
             placeholder='search...'
             className='border rounded-lg p-3 w-full'
-            value={searchTerm}
+            value={sidebardata.searchTerm}
             onChange={handleChange}
             />
           </div>
@@ -202,8 +207,7 @@ function Search() {
           ))}
 
           {showMore && (
-            <button onClick={
-              onShowMoreClick()} className='text-green-700 hover:underline p-7 w-full text-center'>
+            <button onClick={onShowMoreClick} className='text-green-700 hover:underline p-7 w-full text-center'>
               Show more
             </button>
           )}

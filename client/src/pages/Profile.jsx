@@ -2,13 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Link} from 'react-router-dom';
 import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from 'firebase/storage';
-import { app } from '../firebase';
-import {
   updateUserStart,
   updateUserFailure,
   updateUserSuccess,
@@ -67,46 +60,42 @@ function Profile() {
     5. Get public URL after upload
     6. Save URL in formData.avatar
   */
-  const handleFileUpload = (file) => {
-    const storage = getStorage(app);
+ const handleFileUpload = async (file) => {
+  try {
+    setFileUploadError(false);
+    const sigRes = await fetch('/api/cloudinary/signature', {
+      credentials: 'include',
+    });
+    const { signature, timestamp, cloudName, apiKey } = await sigRes.json();
 
-    // Makes filename unique
-    const fileName = new Date().getTime() + file.name;
+    const data = new FormData();
+    data.append('file', file);
+    data.append('api_key', apiKey);
+    data.append('timestamp', timestamp);
+    data.append('signature', signature);
+    data.append('upload_preset', 'proEstate');
 
-    const storageRef = ref(storage, fileName);
-
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on(
-      'state_changed',
-
-      // Progress callback
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-
-        setFilePerc(Math.round(progress));
-      },
-
-      // Error callback
-      (error) => {
-        console.log(error);
-        setFileUploadError(true);
-      },
-
-      // Success callback
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-
-          // Save image URL into form data
-          setFormData((prev) => ({
-            ...prev,
-            avatar: downloadURL,
-          }));
-        });
-      }
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: 'POST', body: data }
     );
-  };
+
+    const json = await res.json();
+
+    if (!json.secure_url) {
+      throw new Error(json.error?.message || 'Image upload failed');
+    }
+
+    setFilePerc(100);
+    setFormData((prev) => ({
+      ...prev,
+      avatar: json.secure_url,
+    }));
+  } catch (error) {
+    console.log(error);
+    setFileUploadError(true);
+  }
+};
 
   /*
     Updates formData whenever user changes

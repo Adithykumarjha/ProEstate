@@ -62,7 +62,7 @@ export default function Listing() {
             {listing.imageUrls.map((url) => (
               <SwiperSlide key={url}>
                 <div
-                  className='h-[550px]'
+                  className='h-[550px] '
                   style={{
                     background: `url(${url}) center no-repeat`,
                     backgroundSize: 'cover',
@@ -124,7 +124,7 @@ export default function Listing() {
 
               <li className='flex items-center gap-1 whitespace-nowrap'>
                 <FaBath className='text-lg'/>
-                {listing.bathrooms > 1 ? `${listing.bathrooms} baths`:`${listing.bedrooms} beth`}
+                {listing.bathrooms > 1 ? `${listing.bathrooms} baths`:`${listing.bedrooms} bath`}
               </li>
 
               <li className='flex items-center gap-1 whitespace-nowrap'>

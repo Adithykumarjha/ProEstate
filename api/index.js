@@ -5,6 +5,7 @@ import UserRouter from './routes/UserRoute.js';
 import authRouter from './routes/authRoute.js';
 import listingRouter from './routes/listingRoute.js'
 import cookieParser from 'cookie-parser';
+import cloudinaryRoutes from './routes/cloudinary_route.js';
 
 dotenv.config();
 mongoose.connect(process.env.MONGODB_CONNECT).then (()=>{
@@ -26,6 +27,7 @@ app.listen(PORT,()=>{
 app.use('/api/user',UserRouter);
 app.use('/api/auth',authRouter);
 app.use('/api/listing',listingRouter);
+app.use('/api/cloudinary', cloudinaryRoutes);
 
 
 // error middleware

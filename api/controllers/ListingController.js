@@ -45,7 +45,7 @@ export const updateListing = async (req,res,next) =>{
       req.body,
       {new:true}
     );
-    res.status(200).json(updateListing);
+    res.status(200).json(updatedListing);
   } catch (error) {
     next(error);
   }
@@ -84,7 +84,7 @@ export const getListings = async (req,res,next)=>{
       parking={$in:[false,true]};
     }
 
-    let type = req.query,type;
+    let type = req.query.type;
     if(type===undefined || type==='all'){
       type = {$in: ['sale','rent']};
     }
@@ -106,6 +106,6 @@ export const getListings = async (req,res,next)=>{
     return res.status(200).json(listings);
 
   } catch (error) {
-    
+    next(error);
   }
 }

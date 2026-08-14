@@ -1,6 +1,4 @@
-import React, { useRef, useState } from 'react'
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
-import { app } from '../firebase';
+import React, { useState } from 'react'
 import {useSelector} from 'react-redux';
 import {useNavigate} from 'react-router-dom';
 
@@ -26,6 +24,7 @@ function CreateListing() {
     furnished:false,
   });
   const [uploading, setUploading] = useState(false);
+
   const handleImageSubmit = (e)=>{
     if(files.length > 0 && files.length + formData.imageUrls.length < 7){
       setUploading(true);
@@ -36,13 +35,11 @@ function CreateListing() {
         promises.push(storeImage(files[i]));
       }
       Promise.all(promises).then((urls) => {
-        setFormData({...formData, imageUrls:formData.imageUrls.concat(urls),
-
-        });
+        setFormData({...formData, imageUrls:formData.imageUrls.concat(urls)});
         setImageUploadError(false);
         setUploading(false);
-        
       }).catch((err)=>{
+        console.log(err);
         setImageUploadError('Image upload failed (2 mb max per image)');
         setUploading(false);
       });
@@ -52,31 +49,31 @@ function CreateListing() {
     }
   };
 
-  const storeImage = async (file)=>{
-    return new Promise((resolve,reject)=>{
-      const storage = getStorage(app);
-      const fileName = new Date().getTime() + file.name;
-      const storageRef = ref(storage, fileName);
-      const uploadTask = uploadBytesResumable(storageRef,file);
+  const storeImage = async (file) => {
+  const sigRes = await fetch('/api/cloudinary/signature');
+  const { signature, timestamp, cloudName, apiKey } = await sigRes.json();
 
-      uploadTask.on(
-        "state-changed",
-        (snapshot)=>{
-          const progress = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
-          console.log(`Upload is ${progress}% done`);
-        },
-        (error)=>{
-          reject(error);
-        },
-        ()=>{
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL)=>{
-            resolve(downloadURL);
-          });
-        }
-        
-      );
-    });
-  };
+  const data = new FormData();
+  data.append('file', file);
+  data.append('api_key', apiKey);
+  data.append('timestamp', timestamp);
+  data.append('signature', signature);
+  data.append('upload_preset', 'proEstate');
+  
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: 'POST', body: data }
+  );
+
+  const json = await res.json();
+
+  if (!json.secure_url) {
+    throw new Error('Image upload failed');
+  }
+
+  return json.secure_url;
+};
 
   const handleRemoveImage = (index)=>{
     setFormData({
@@ -107,6 +104,7 @@ function CreateListing() {
       });
     }
   };
+
   const handleSubmit = async (e)=>{
     e.preventDefault();
     try{
@@ -121,7 +119,7 @@ function CreateListing() {
         },
         body:JSON.stringify({
           ...formData,
-          useRef: currentUser._id
+          userRef: currentUser._id
         }),
       });
       const data=await res.json();
@@ -135,7 +133,6 @@ function CreateListing() {
     } catch (error) {
       setError(error.message);
       setLoading(false);
-
     }
   };
 
@@ -147,7 +144,7 @@ function CreateListing() {
         <div className='flex flex-col gap-4 flex-1'>
           <input type="text" placeholder='Name' className='border p-3 rounded-lg' id='name' maxLength='62' minLength='10' required onChange={handleChange} value={formData.name} />
 
-          <input type="text" placeholder='Descriptiion' className='border p-3 rounded-lg' id='description' required  onChange={handleChange} value={formData.description}/>
+          <textarea placeholder='Description' className='border p-3 rounded-lg' id='description' required  onChange={handleChange} value={formData.description}/>
 
           <input type="text" placeholder='Address' className='border p-3 rounded-lg' id='address'  required  onChange={handleChange} value={formData.address}/>
 
@@ -157,7 +154,7 @@ function CreateListing() {
               <input type="checkbox" id='sale' className='w-5' onChange={handleChange} checked={formData.type==='sale'} />
               <span>Sell</span>
             </div>
-    
+
             <div className='flex gap-2'>
               <input type="checkbox" id='rent' className='w-5' onChange={handleChange} checked={formData.type==='rent'} />
               <span>Rent</span>
@@ -177,7 +174,6 @@ function CreateListing() {
               <input type="checkbox" id='offer' className='w-5' onChange={handleChange} checked={formData.offer}  />
               <span>Offer</span>
             </div>
-
 
           </div>
 
@@ -200,7 +196,6 @@ function CreateListing() {
               </div>
             </div>
 
-
             {formData.offer && (
               <div className='flex items-center gap-2'>
               <input type="number" id='discountPrice' min='0' max='100000' required className='p-3 border border-gray-300 rounded-lg' onChange={handleChange} value={formData.discountPrice}/>
@@ -209,8 +204,6 @@ function CreateListing() {
                 <span className='text-xs'>($ / month)</span>
               </div>
             </div>
-
-
             )}
           </div>
         </div>
@@ -222,18 +215,18 @@ function CreateListing() {
             <button type='button'
             disabled={uploading} className='p-3 text-green-700 border-green-700 rounded uppercase hover:shadow-lg disabled:opacity-80 ' onClick={handleImageSubmit}>{uploading ? 'Uploading..': 'Upload'}</button>
           </div>
+          <p className='text-red-700'>{imageUploadError && imageUploadError}</p>
+          {
+            formData.imageUrls.length > 0 && formData.imageUrls.map((url, index) => (
+              <div key={url} className='flex justify-between p-3 border items-center'>
+                <img src={url} alt="listing image" className='w-20 h-20 object-contain rounded-lg' />
+                <button type='button' onClick={()=>handleRemoveImage(index)} className='p-3 text-red-700  rounded-lg uppercase hover:opacity-75' >Delete</button>
+              </div>
+            ))
+          }
+          <button disabled={loading || uploading} className='p-3 bg-slate-700 text-white rounded-lg uppercase  hover:opacity-95 disabled:opacity-80'>{loading ? 'Creating...': 'Create Listing'}</button>
+          {error && <p className='text-red-700 text-sm'>{error}</p>}
         </div>
-        <p className='text-red-700'>{imageUploadError && imageUploadError}</p>
-        {
-          formData.imageUrls.length > 0 && formData.imageUrls.map((url, index) => (    
-            <div key={url} className='flex justify-between p-3 border items-center'>
-              <img src={url} alt="listing image" className='w-20 h-20 object-contain rounded-lg' />
-              <button type='button' onClick={()=>handleRemoveImage(index)} className='p-3 text-red-700  rounded-lg uppercase hover:opacity-75' >Delete</button>
-            </div>
-          ))
-        }
-        <button disabled={loading || uploading} className='p-3 bg-slate-700 text-white rounded-lg uppercase  hover:opacity-95 disabled:opacity-80'>{loading ? 'Creating...': 'Create Listing'}</button>
-        {error && <p className='text-red-700 text-sm'>{error}</p>}
       </form>
     </main>
   );

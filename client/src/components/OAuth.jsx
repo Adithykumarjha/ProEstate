@@ -8,7 +8,7 @@ function OAuth() {
   const dispatch = useDispatch();
   const handleGoogleClick = async ()=>{
     try {
-      const provider = new GogleAuthProvider();
+      const provider = new GoogleAuthProvider();
       const auth = getAuth(app);
 
       const result = await signInWithPopup(auth,provider)
@@ -25,7 +25,7 @@ function OAuth() {
       dispatch(signInSuccess(data));
 
     } catch (error) {
-      console.log('Could not sign in with google');
+      console.log(error);
     }
   }
   return (

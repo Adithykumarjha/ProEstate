@@ -16,7 +16,7 @@ import Header from './components/Header';
 
 import PrivateRoute from './components/PrivateRoute';
 
-import CreateListing from './pages/createListing';
+import CreateListing from './pages/CreateListing';
 
 import UpdateListing from './pages/UpdateListing';
 
@@ -28,19 +28,18 @@ import Search from './pages/Search';
 
 export default function App() {
 
-  return <BrowserRouter>
+return <BrowserRouter>
 
-  <Header />
+ <Header />
 
-   
 
-  <Routes>
+ <Routes>
 
-    <Route path='/' element={<Home />} />
+ <Route path='/' element={<Home />} />
 
-    <Route path='/sign-in' element={<SignIn />} />
+  <Route path='/sign-in' element={<SignIn />} />
 
-    <Route path='/sign-up' element={<SignUp />} />
+ <Route path='/sign-up' element={<SignUp />} />
 
     <Route path='/about' element={<About />} />
 
